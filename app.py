@@ -11,42 +11,79 @@ import base64
 st.set_page_config(page_title="SVCE STTP Certificate Generator", layout="centered")
 
 # ====================== COUNTERS ======================
-def update_visit_count():
-    count_file = "counter.txt"
-    if not os.path.exists(count_file):
-        with open(count_file, "w") as f:
-            f.write("0")
-    with open(count_file, "r") as f:
-        count = int(f.read())
-    if "counted" not in st.session_state:
-        count += 1
+
+def read_counter(count_file):
+    """Safely read a counter value."""
+    try:
+        if not os.path.exists(count_file):
+            with open(count_file, "w") as f:
+                f.write("0")
+            return 0
+
+        with open(count_file, "r") as f:
+            content = f.read().strip()
+
+        # Empty or invalid file
+        if not content:
+            return 0
+
+        return int(content)
+
+    except (ValueError, OSError):
+        # Reset invalid counter
+        try:
+            with open(count_file, "w") as f:
+                f.write("0")
+        except OSError:
+            pass
+
+        return 0
+
+
+def write_counter(count_file, count):
+    """Safely write a counter value."""
+    try:
         with open(count_file, "w") as f:
             f.write(str(count))
+    except OSError:
+        pass
+
+
+def update_visit_count():
+    count_file = "counter.txt"
+
+    count = read_counter(count_file)
+
+    # Count only once per Streamlit session
+    if "counted" not in st.session_state:
+        count += 1
+        write_counter(count_file, count)
         st.session_state.counted = True
+
     return count
+
 
 def update_download_count():
     count_file = "downloads.txt"
-    if not os.path.exists(count_file):
-        with open(count_file, "w") as f:
-            f.write("0")
-    with open(count_file, "r") as f:
-        count = int(f.read())
+
+    count = read_counter(count_file)
+
     count += 1
-    with open(count_file, "w") as f:
-        f.write(str(count))
+    write_counter(count_file, count)
+
     return count
+
 
 def get_download_count():
     count_file = "downloads.txt"
-    if not os.path.exists(count_file):
-        return 0
-    with open(count_file, "r") as f:
-        return int(f.read())
+
+    return read_counter(count_file)
+
+
+# ====================== INITIALIZE COUNTERS ======================
 
 visit_count = update_visit_count()
 download_total = get_download_count()
-
 # ====================== HEADER ======================
 st.title("SVCE_CSE: SVCE STTP Certificate Generator")
 st.markdown(f"<div style='text-align:right; color:gray;'>👁️ Day Visits: {visit_count}</div>", unsafe_allow_html=True)
