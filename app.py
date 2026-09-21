@@ -166,7 +166,7 @@ if st.button("Generate Certificate"):
                 pdf.add_font("AlexBrush", "", "AlexBrush-Regular.ttf", uni=True)
                 pdf.add_font("CakeSans", "", "CakeSans-Bold.ttf", uni=True)
 
-                pdf.ln(81)
+                pdf.ln(83)
 
                 # Combine name and designation
                 full_text = f"{name.strip().title()} - {designation.strip().title()}"
